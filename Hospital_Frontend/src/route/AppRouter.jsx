@@ -6,6 +6,8 @@ import Users from '../components/Admin/Pages/Users'
 import Doctors from '../components/Admin/Pages/Doctors'
 import Navbar from '../components/Admin/Pages/Navbar'
 import Admin from '../components/Admin/Pages/Admin'
+import Login from '../components/User/Login'
+import Registration from '../components/User/Registration'
 
 
 const AppRouter = () => {
@@ -13,6 +15,9 @@ const AppRouter = () => {
     <div>
         <BrowserRouter>
             <Routes>
+                <Route path='/user/login' element={<Login/>}/>
+                <Route path='/user/registration' element={<Registration/>}/>
+
                 <Route path='/user/home' element={<User/>} />
                 <Route path='/admin' element={<Admin/>} >
                 <Route path='/admin/users' element={<Users/>} />

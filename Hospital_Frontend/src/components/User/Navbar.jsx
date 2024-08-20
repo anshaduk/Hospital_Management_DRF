@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-scroll';
+// import { Link } from 'react-scroll';
 import BookNow from '../../models/BookNow';
+import { Link } from 'react-router-dom';
 
 const navigation = [
   { name: 'Home', href: 'home', current: true },
@@ -65,6 +66,14 @@ const Navbar = () => {
                   ))}
                 </div>
                 <div className="flex items-center sm:ml-auto gap-1">
+                  <Link to='/user/login'>
+                <button
+                    type="button"
+                    className="rounded-md bg-red-900 px-4 py-1 text-white hover:bg-hoverColor transition duration-300 ease-in-out sm:text-sm"
+                  >
+                    Login
+                  </button>
+                  </Link>
                   <button
                     type="button"
                     className="rounded-md bg-red-900 px-4 py-1 text-white hover:bg-hoverColor transition duration-300 ease-in-out sm:text-sm"
