@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.charField(style={'input_type':'password'},write_only=True)
+    password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
     is_doctor = serializers.BooleanField(default=False,required=False)
     email = serializers.EmailField()
     class Meta:

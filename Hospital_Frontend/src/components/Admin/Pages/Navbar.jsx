@@ -1,5 +1,6 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon, CogIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 const navigation = [
   { name: 'Dashboard', href: '#', current: true },
@@ -13,6 +14,9 @@ function classNames(...classes) {
 }
 
 const Navbar=()=> {
+
+  
+
   return (
     <Disclosure as="nav" className="bg-gray-900">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">

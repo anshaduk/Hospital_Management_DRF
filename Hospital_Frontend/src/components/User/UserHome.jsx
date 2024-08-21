@@ -3,7 +3,9 @@ import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 // import { Link } from 'react-scroll';
 import BookNow from '../../models/BookNow';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const navigation = [
   { name: 'Home', href: 'home', current: true },
@@ -15,26 +17,49 @@ const navigation = [
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
+const UserHome = () => {
 
-const Navbar = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [isAuth, setIsAuth] = useState(false)
+    const [showForm, setShowForm] = useState(false);
+    const [isAuth, setIsAuth] = useState(false);
+    
 
-  const openForm = () => {
-    setShowForm(true);
+    // console.log(message,"hiiiiiiiiiii");
+    // const navigate = useNavigate()
+
+    const openForm = () => {
+        setShowForm(true);
   };
 
-  const closeForm = () => {
-    setShowForm(false);
+    const closeForm = () => {
+        setShowForm(false);
   };
 
   // Checking Access_Token is available or not
-  useEffect(()=>{
-    if (localStorage.getItem('access_token') !== null){
-      setIsAuth(true);
-    }
-  },[isAuth]);
+//   useEffect(() => {
+//     const token = localStorage.getItem('access_token');
+  
+    // if (token !== null) {
+    //   setIsAuth(true);
+      
+    //   // Fetch data when the user is authenticated
+    //   (async () => {
+    //     try {
+        //   const { data } = await axios.get('http://127.0.0.1:8000/api/home/');
+        //   console.log(data, "1111");
+        //   setMessage(data.message);
+//         } catch (e) {
+//           console.log('Not authorized');
+//         }
+//       })();
+//     } else {
+//       // Navigate to login page if not authenticated
+//       navigate('/user/login');
+//     }
+//   }, [navigate, setIsAuth]);
+  
 
+  
+  
   return (
     <Disclosure as="nav" className="bg-backgroundColor w-full fixed top-0 left-0 z-50 ">
       {({ open }) => (
@@ -129,6 +154,7 @@ const Navbar = () => {
       )}
     </Disclosure>
   );
-};
+  
+}
 
-export default Navbar;
+export default UserHome

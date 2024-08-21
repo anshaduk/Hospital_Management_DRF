@@ -89,6 +89,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'App.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -141,24 +142,27 @@ REST_FRAMEWORK = {
 }
 
 #!Simple JWT Configuration
-IMPLE_JWT = {
-'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
-'ROTATE_REFRESH_TOKENS': True,
-'BLACKLIST_AFTER_ROTATION': True,
-'AUTH_HEADER_TYPES': ('Bearer',),
-'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-'USER_ID_FIELD': 'id',
-'SIGNING_KEY': SECRET_KEY,
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'SIGNING_KEY': SECRET_KEY,
 
-'USER_ID_CLAIM': 'user_id',
-'USER_AUTHENTICATION_RULE':'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-'TOKEN_TYPE_CLAIM': 'token_type',
-'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-'JTI_CLAIM': 'jti',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE':'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    'JTI_CLAIM': 'jti',
 
 }
 
 #! To allow external application like react access out api
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+  
+]
