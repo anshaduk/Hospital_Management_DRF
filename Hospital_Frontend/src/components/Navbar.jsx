@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 // import { Link } from 'react-scroll';
-import BookNow from '../../models/BookNow';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+// import BookNow from '../../models/BookNow';
+import { Link } from 'react-router-dom';
+
 
 const navigation = [
   { name: 'Home', href: 'home', current: true },
@@ -17,53 +16,32 @@ const navigation = [
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
-const UserHome = () => {
 
-    const [showForm, setShowForm] = useState(false);
-    const [isAuth, setIsAuth] = useState(false);
-    
+const Navbar = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [isAuth, setIsAuth] = useState(false)
 
-    // console.log(message,"hiiiiiiiiiii");
-    // const navigate = useNavigate()
-
-    const openForm = () => {
-        setShowForm(true);
+  const openForm = () => {
+    setShowForm(true);
   };
 
-    const closeForm = () => {
-        setShowForm(false);
+  const closeForm = () => {
+    setShowForm(false);
   };
 
   // Checking Access_Token is available or not
-//   useEffect(() => {
-//     const token = localStorage.getItem('access_token');
-  
-    // if (token !== null) {
-    //   setIsAuth(true);
-      
-    //   // Fetch data when the user is authenticated
-    //   (async () => {
-    //     try {
-        //   const { data } = await axios.get('http://127.0.0.1:8000/api/home/');
-        //   console.log(data, "1111");
-        //   setMessage(data.message);
-//         } catch (e) {
-//           console.log('Not authorized');
-//         }
-//       })();
-//     } else {
-//       // Navigate to login page if not authenticated
-//       navigate('/user/login');
-//     }
-//   }, [navigate, setIsAuth]);
-  
+  useEffect(()=>{
+    if (localStorage.getItem('access_token') !== null){
+      setIsAuth(true);
+    }
+  },[isAuth]);
 
-  
-  
   return (
     <Disclosure as="nav" className="bg-backgroundColor w-full fixed top-0 left-0 z-50 ">
+      
       {({ open }) => (
         <>
+        
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -154,7 +132,6 @@ const UserHome = () => {
       )}
     </Disclosure>
   );
-  
-}
+};
 
-export default UserHome
+export default Navbar;

@@ -1,53 +1,19 @@
 import { Link, useNavigate } from "react-router-dom"
-import axios from "axios"
-import { useState } from "react"
-import { jwtDecode } from "jwt-decode";
+import { useContext, useEffect } from "react"
+import AuthContext from "../context/AuthContext";
 
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [userDetail,setUserDetail] = useState();
 
   const navigate = useNavigate()
+  const {LoginUser, user} = useContext(AuthContext)
 
-  //create the submit method.
-  const submit = async (e) =>{
-    e.preventDefault();
+  useEffect(() => {
+    if (user) {
+      navigate("/user/userhome");
+    }
+  },[user,navigate]);
 
-    const user = {
-      email : username,
-      password : password
-    };
-    // create the POST request
-    const {data} = await
-    axios.post('http://127.0.0.1:8000/api/token/',
-                user)
-
-    // Initialize the access & refresh token in localstorage.
-    console.log(user);
-    
-    console.log(data,"helllo");
-
-    // Decode the token to get user details
-    const decodedUser = jwtDecode(data.access);
-    setUserDetail(decodedUser);
-    console.log(decodedUser, "pppppppppp");
-    
-    localStorage.clear();
-    localStorage.setItem('access_token',data.access);
-    localStorage.setItem('refresh_token',data.refresh);
-    // setUserDetail(jwtDecode(data.access))
-    // console.log(userDetail,"pppppppppp");
-    
-    axios.defaults.headers.common['Authorization'] = `Beares ${data['access']}`;
-    // window.location.href = '/user/userhome'
-    navigate('/user/userhome')
-
-    setUsername('')
-    setPassword('')
-
-  }
     return (
       <>
         <div className="flex min-h-full flex-1 flex-col justify-center items-center px-6 py-12 lg:px-8 h-screen bg-gray-900 w-full text-white">
@@ -60,7 +26,7 @@ export default function Login() {
           <div className=" dark:bg-gray-800 rounded-lg shadow-lg p-8 space-y-6 ">
   
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm ">
-            <form action="#" method="POST" onSubmit={submit} className="space-y-6">
+            <form action="#" method="POST" onSubmit={LoginUser} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-300">
                   Email address
@@ -71,10 +37,6 @@ export default function Login() {
                     name="email"
                     type="email"
                     required
-                    value={username}
-                    onChange={(e)=>
-                      setUsername(e.target.value)
-                    } 
                     autoComplete="email"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
@@ -98,10 +60,6 @@ export default function Login() {
                     name="password"
                     type="password"
                     required
-                    value={password}
-                    onChange={(e)=>
-                      setPassword(e.target.value)
-                    }
                     autoComplete="current-password"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
@@ -120,11 +78,11 @@ export default function Login() {
   
             <p className="mt-10 text-center text-sm text-gray-500">
               Not a member?{' '}
-              <Link to='/user/registration'>
-              <Link to="#" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+              
+              <Link to="/user/registration" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
               Create an account
               </Link>
-              </Link>
+              
             </p>
           </div>
           </div>

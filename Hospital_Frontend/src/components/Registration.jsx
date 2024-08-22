@@ -1,8 +1,62 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import AuthContext from '../context/AuthContext';
+import axios from 'axios';
 
 function Registration() {
   const [isDoctor, setIsDoctor] = useState(false);
+  // const [isAdmin, setIsAdmin] = useState(false);
+  const {user} = useContext(AuthContext)
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if(user){
+      navigate("/user/userhome")
+    }
+  },[user,navigate]);
+
+  const UserRegister = async (e)=> {
+    e.preventDefault()
+    const formData = new FormData();
+    formData.append('username', e.target.username.value);
+    formData.append('email', e.target.email.value);
+    formData.append('password', e.target.password.value);
+    formData.append('password2', e.target.password2.value);
+    formData.append('is_doctor',isDoctor)
+  
+
+  if(isDoctor){
+    const doctor_proof = e.target.doctor_proof?.files[0];
+    const profile_picture = e.target.profile_picture?.files[0];
+    const department = e.target.department?.value;
+
+    if(!profile_picture || !doctor_proof || !department){
+      alert("Please upload Doctor Proof, Profle Photo and Department...")
+      return
+    }
+
+    formData.append('doctor_proof', doctor_proof);
+    formData.append('profile_picture', profile_picture);
+    formData.append('department', department);
+  }
+
+  try {
+    const response = await axios.post('http://127.0.0.1:8000/api/register/', formData, {
+      headers:{
+        'Content-Type' : 'multipart/form-data'
+      }
+    });
+
+    console.log(response);
+
+    alert("Registration Succesfull")
+    navigate("/")
+    
+  } catch (error) {
+    console.log(error);
+    alert(error)
+  }
+  };
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -13,7 +67,7 @@ function Registration() {
           </h1>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 space-y-6">
-          <form className="space-y-6" action="#">
+          <form className="space-y-6" action="#" onSubmit={UserRegister}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-2">
               {/* Username Field */}
               <div>
@@ -67,8 +121,8 @@ function Registration() {
                 </label>
                 <input
                   type="password"
-                  name="confirm-password"
-                  id="confirm-password"
+                  name="password2"
+                  id="password2"
                   className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="••••••••"
                   required
@@ -81,6 +135,7 @@ function Registration() {
               <div className="flex items-center">
                 <input
                   id="is_doctor"
+                  name="is_doctor"
                   type="checkbox"
                   className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
                   onChange={(e) => setIsDoctor(e.target.checked)}
@@ -111,7 +166,7 @@ function Registration() {
                   </label>
                   <input
                     type="file"
-                    name="profile-pic"
+                    name="profile_picture"
                     id="profile-pic"
                     className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
@@ -123,7 +178,7 @@ function Registration() {
                   </label>
                   <input
                     type="file"
-                    name="doctor-proof"
+                    name="doctor_proof"
                     id="doctor-proof"
                     className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />

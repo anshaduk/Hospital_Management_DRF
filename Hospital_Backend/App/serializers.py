@@ -6,10 +6,16 @@ from rest_framework.exceptions import ValidationError
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type':'password'},write_only=True)
     is_doctor = serializers.BooleanField(default=False,required=False)
+    doctor_proof = serializers.ImageField(required=False)
+    profile_picture = serializers.ImageField(required=False)
+    department = serializers.CharField(required=False)
     email = serializers.EmailField()
     class Meta:
         model = User
-        fields = ['username','email','password','password2','is_doctor']
+        fields = ['username','email','password','password2',
+                  'is_doctor','is_admin','profile_picture',
+                  'doctor_proof','department','is_active'
+                  ]
 
 
     def validate(self,data):
@@ -23,17 +29,22 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls,user):
         token = super().get_token(user)
         token['username'] = user.username
+        token['email'] = user.email
         token['is_doctor'] = user.is_doctor
         token['is_admin'] = user.is_admin
+        token['is_active'] = user.is_active
         return token
 
 class DoctorSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
-    hospital = serializers.CharField(required=False)
+    # hospital = serializers.CharField(required=False)
     department = serializers.CharField(required=False)
+    profile_picture = serializers.ImageField(required=False)
+    doctor_proof = serializers.ImageField(required=False)
+    user = UserRegistrationSerializer()
     class Meta:
         model = Doctor
-        fields = ['id','hospital','department','user']
+        fields = ['id','department','user','is_verified', 'profile_picture', 'doctor_proof']
         read_only_fields = ('user',)
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -78,6 +89,7 @@ class UserProfileAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id','first_name','last_name','username','email','is_doctor','is_active','doctor')
+
     def update(self,instance,validated_data):
         instance.is_active = validated_data.get('is_active',instance.is_active)
         instance.save()    

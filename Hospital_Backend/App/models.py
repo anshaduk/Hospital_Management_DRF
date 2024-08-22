@@ -45,6 +45,7 @@ class User(AbstractBaseUser):
         is_doctor = models.BooleanField(default=False)
         is_admin = models.BooleanField(default=False)
         is_active = models.BooleanField(default=True)
+        is_verified = models.BooleanField(default=False)
 
         def __str__(self):
              return self.username

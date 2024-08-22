@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from '../../layouts/Button';
+// import Button from '../../layouts/Button';
 
 const Home = () => {
   return ( 
@@ -11,7 +11,7 @@ const Home = () => {
         <p className='text-base sm:text-lg md:text-xl lg:text-2xl'>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti, quidem? Laudantium, voluptas, voluptate tempora quaerat omnis, porro soluta dignissimos illum veniam harum mollitia illo officia unde necessitatibus quasi maxime nostrum!
         </p>
-        <Button title="See Services" />
+        {/* <Button title="See Services" /> */}
       </div>
     </div>
   );

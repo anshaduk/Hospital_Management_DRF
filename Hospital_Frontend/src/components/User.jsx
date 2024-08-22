@@ -1,8 +1,8 @@
 import React from 'react'
 import Home from './Home'
 import Navbar from './Navbar'
-import About from './About'
-import Services from './Services'
+// import About from './About'
+// import Services from './Services'
 import Doctors from './Doctors'
 import Footer from './Footer'
 
@@ -14,12 +14,12 @@ const User = () => {
       <div id="home">
         <Home/>
       </div>
-      <div id="about">
-        <About/>
-      </div>
-      <div id="services">
-        <Services/>
-      </div>
+      {/* <div id="about">
+        <About/> */}
+      {/* </div> */}
+      {/* <div id="services"> */}
+        {/* <Services/> */}
+      {/* </div> */}
       <div id="doctors">
         <Doctors/>
       </div>
