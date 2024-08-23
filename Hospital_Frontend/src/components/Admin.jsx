@@ -1,340 +1,111 @@
-import axios from 'axios';
-import React, { useContext, useEffect, useState } from 'react';
-import AuthContext from '../context/AuthContext';
-import { useNavigate } from 'react-router';
-
+import React, { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const Admin = () => {
-  const navigate = useNavigate()
-    const { authTokens, user } = useContext(AuthContext);
-    const [users, setUsers] = useState([]);
-    const [admins, setAdmins] = useState([]);
-    const [doctors, setDoctors] = useState([]);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const baseUrl = 'http://127.0.0.1:8000/';
 
-    const fetchData = async () => {
+  const handleLogout = ()=>{
+    
+  }  
+  const [users, setUsers] = useState([
+    { username: "user1", email: "user1@example.com", firstname: "John", lastname: "Doe", isBlocked: false },
+    { username: "user2", email: "user2@example.com", firstname: "Jane", lastname: "Smith", isBlocked: false },
+  ]);
 
-        try {
-            const [userResponse, doctorResponse] = await Promise.all([
-                axios.get('http://127.0.0.1:8000/api/admin/', {
-                    headers: {
-                        'Authorization': `Bearer ${authTokens.access}`
-                    }
-                }),
-                axios.get('http://127.0.0.1:8000/api/doctor/', {
-                    headers: {
-                        'Authorization': `Bearer ${authTokens.access}`
-                    }
-                }),
-            ]);
+  const [doctors, setDoctors] = useState([
+    { username: "doc1", email: "doc1@example.com", department: "Cardiology", isBlocked: false, isAdmin: false, profilePic: "/src/assets/img/doc1.jpg", doctorProof: "/src/assets/proof/doc1-proof.jpg" },
+    { username: "doc2", email: "doc2@example.com", department: "Neurology", isBlocked: false, isAdmin: false, profilePic: "/src/assets/img/doc2.jpg", doctorProof: "/src/assets/proof/doc2-proof.jpg" },
+  ]);
 
-            const userList = userResponse.data.filter(user => !user.is_doctor && !user.is_admin && !user.allow_admin);
-            const adminList = userResponse.data.filter(user => user.is_admin || user.allow_admin);
-            // console.log(adminList);
+  const toggleUserBlock = (index) => setUsers(users.map((user, i) => i === index ? { ...user, isBlocked: !user.isBlocked } : user));
+  const toggleDoctorBlock = (index) => setDoctors(doctors.map((doctor, i) => i === index ? { ...doctor, isBlocked: !doctor.isBlocked } : doctor));
+  const toggleDoctorAdmin = (index) => setDoctors(doctors.map((doctor, i) => i === index ? { ...doctor, isAdmin: !doctor.isAdmin } : doctor));
 
-            setAdmins(adminList)
-            setUsers(userList);
-            setDoctors(doctorResponse.data.doctors);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-    // admin verification
-    const updateAdminStatus = async (id, isAdmin) => {
-        try {
-            await axios.patch(`http://127.0.0.1:8000/api/admin/${id}/`, {
-                is_admin: isAdmin
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${authTokens.access}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+  const userSlider = useRef(null);
+  const doctorSlider = useRef(null);
+  const settings = { dots: true, infinite: true, speed: 500, arrows: false, slidesToShow: 3, responsive: [{ breakpoint: 1024, settings: { slidesToShow: 2 } }, { breakpoint: 768, settings: { slidesToShow: 1 } }] };
 
-            setAdmins(prevAdmins =>
-                prevAdmins.map(admin =>
-                    admin.id === id ? { ...admin, is_admin: isAdmin } : admin
-                )
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    };
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <nav className="flex justify-between items-center py-4 bg-gray-800 text-white px-5">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <div>
+            <Link to="/home" className="mr-4 bg-green-500 px-4 py-2 rounded-lg text-white">Home</Link>
+            <button onClick={handleLogout} className="bg-red-500 px-4 py-2 rounded-lg text-white">Logout</button>
+        </div>
+      </nav>
 
-    const toggleAdminStatus = (id, currentStatus) => {
-        updateAdminStatus(id, !currentStatus);
-    };
-
-    const blockUser = async (id) => {
-        console.log(id, 'emailllllllllllllllll');
-        try {
-            await axios.patch(`http://127.0.0.1:8000/api/admin/${id}/`, {
-                action: 'block'
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${authTokens.access}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            setUsers(prevUsers =>
-                prevUsers.map(user =>
-                    user.id === id ? { ...user, is_active: false } : user
-                )
-            );
-
-            setDoctors(prevDoctors =>
-            prevDoctors.map(doctor =>
-                doctor.doctor.id === id ? { ...doctor, doctor: { ...doctor.doctor, is_active: false } } : doctor
-            )
-        );
-
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const unblockUser = async (id) => {
-        console.log(id, 'emailllllllllllllllll');
-
-        try {
-            await axios.patch(`http://127.0.0.1:8000/api/admin/${id}/`, {
-                action: 'unblock'
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${authTokens.access}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            setUsers(prevUsers =>
-                prevUsers.map(user =>
-                    user.id === id ? { ...user, is_active: true } : user
-                )
-            );
-            setDoctors(prevDoctors =>
-                prevDoctors.map(doctor =>
-                    doctor.doctor.id === id ? { ...doctor, doctor: { ...doctor.doctor, is_active: true } } : doctor
-                )
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-
-
-    // Dovtor verification
-    const updateDoctorVerification = async (id, isVerified) => {
-        try {
-            await axios.patch(`http://127.0.0.1:8000/api/doctor/${id}/`, {
-                is_verified: isVerified
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${authTokens.access}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            setDoctors(prevDoctors =>
-                prevDoctors.map(doctor =>
-                    doctor.id === id ? { ...doctor, is_verified: isVerified } : doctor
-                )
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    // TOGGLES 
-    const toggleBlockStatus = (id, isActive) => {
-        if (isActive) {
-            blockUser(id);
-        } else {
-            unblockUser(id);
-        }
-    };
-    const toggleVerification = (id, currentStatus) => {
-        updateDoctorVerification(id, !currentStatus);
-    };
-
-    const openModal = (imageSrc) => {
-        setSelectedImage(imageSrc);
-    };
-
-    const closeModal = () => {
-        setSelectedImage(null);
-    };
-
-    useEffect(() => {
-        if (!user.is_admin) {
-            navigate('/');
-        } else {
-            fetchData();
-        }
-    }, [user, navigate]);
-
-    return (
-        <>
-
-            <div className="w-full text-center mb-4">
-                <h1 className="text-xl font-bold text-gray-950 md:text-6xl">ADMIN</h1>
+      <div className="p-5 space-y-16">
+        {/* Registered Users Section */}
+        <section className="w-full">
+          <div className="bg-white rounded-lg shadow-lg p-5">
+            <h2 className="text-3xl font-semibold mb-5 text-center">Registered Users</h2>
+            <div className="flex justify-between mb-4">
+              <button className="bg-[#d5f2ec] text-backgroundColor px-4 py-2 rounded-lg" onClick={() => userSlider.current.slickPrev()}>
+                <FaArrowLeft size={25} />
+              </button>
+              <button className="bg-[#d5f2ec] text-backgroundColor px-4 py-2 rounded-lg" onClick={() => userSlider.current.slickNext()}>
+                <FaArrowRight size={25} />
+              </button>
             </div>
-
-            <div className="flex flex-wrap">
-                {/* DOCTORS SECTION */}
-                <div className="w-full md:w-1/2 p-2">
-                    <div className="bg-gray-900 rounded-2xl bg-opacity-45 backdrop-blur-sm shadow">
-                        <div className="w-full text-center">
-                            <h1 className="text-xl font-bold text-gray-300 md:text-4xl">DOCTORS</h1>
-                        </div>
-                        <div className="flex flex-wrap">
-                            {doctors?.map((doc) => (
-                                <div key={doc.id} className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/2 p-2">
-                                    <div className="bg-gray-800 rounded-lg p-4">
-                                        <div className="flex flex-col items-center">
-                                            <div className="flex justify-between w-full">
-                                                <img className="w-24 h-20 mb-2 rounded-md shadow-md" src={`${baseUrl + doc.profile_picture}`} alt="Doctor Image 1" />
-                                                <img
-                                                    onClick={() => openModal(`${baseUrl + doc.doctor_proof}`)}
-                                                    className="w-24 h-20 mb-2 rounded-md shadow-md cursor-pointer"
-                                                    src={`${baseUrl + doc.doctor_proof}`}
-                                                    alt="Doctor Image 2"
-                                                />
-                                            </div>
-                                            <h5 className="mb-1 text-md font-medium text-gray-900 dark:text-white uppercase">{doc.doctor.username}</h5>
-                                            <span className="text-xs font-semibold text-gray-200 uppercase">DEPARTMENT : {doc.department}</span>
-                                            <span className="text-xs font-semibold text-gray-200">EMAIL : {doc.doctor.email}</span>
-                                            <div className="flex items-center justify-between mt-2 w-full">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={doc.is_verified}
-                                                    onChange={() => toggleVerification(doc.id, doc.is_verified)}
-                                                    className="mr-2"
-                                                />
-                                                {doc.doctor.is_active ? (
-                                                    <button
-                                                        onClick={() => toggleBlockStatus(doc.doctor.id, doc.doctor.is_active)}
-                                                        className="py-1 text-xs font-mono px-3 text-gray-100 focus:outline-none bg-yellow-700 hover:bg-red-600 hover:text-black rounded-md"
-                                                    >
-                                                        BLOCK
-                                                    </button>
-                                                )
-
-                                                    : (
-                                                        <button
-                                                            onClick={() => toggleBlockStatus(doc.doctor.id, doc.doctor.is_active)}
-                                                            // {...console.log(doc.doctor.id,'iddddddddddd')}
-                                                            
-                                                            className="py-1 text-xs font-mono px-3 text-black focus:outline-none bg-red-600 hover:text-black rounded-md"
-                                                        >
-                                                            UNBLOCK
-                                                        </button>
-
-                                                    )}
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+            <Slider ref={userSlider} {...settings}>
+              {users.map((user, index) => (
+                <div className="h-[250px] text-black rounded-xl shadow-lg mb-2 p-5" key={index}>
+                  <h3 className="font-semibold text-xl mb-2">{user.username}</h3>
+                  <p>{user.email}</p>
+                  <p>{user.firstname} {user.lastname}</p>
+                  <div className="mt-4 flex justify-between items-center">
+                    <label>
+                      <input type="checkbox" checked={user.isBlocked} onChange={() => toggleUserBlock(index)} /> Block/Unblock
+                    </label>
+                    <button className="bg-red-500 px-3 py-1 text-white rounded-lg">Delete</button>
+                  </div>
                 </div>
+              ))}
+            </Slider>
+          </div>
+        </section>
 
-                {/* USERS SECTION */}
-                <div className="w-full md:w-1/2 p-2">
-                    <div className="bg-gray-900 rounded-2xl bg-opacity-45 backdrop-blur-sm shadow">
-                        <div className="w-full text-center">
-                            <h1 className="text-xl font-bold text-gray-300 md:text-4xl">USERS</h1>
-                        </div>
-                        <div className="flex flex-wrap">
-                            {users.map((user) => (
-                                <div key={user.id} className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/2 p-2">
-                                    <div className="bg-gray-800 rounded-lg p-4">
-                                        <div className="flex flex-col items-center">
-                                            <img className="w-24 h-20 mb-2 rounded-full shadow-md" src="https://img.freepik.com/premium-vector/user-profile-icon-flat-style-member-avatar-vector-illustration-isolated-background-human-permission-sign-business-concept_157943-15752.jpg" alt="User Profile" />
-                                            <h5 className="mb-1 text-md font-medium text-gray-900 dark:text-white">{user.username}</h5>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{user.email}</span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">User</span>
-                                            <div className="flex mt-2">
-                                            {user.is_active ? (
-                                                <button
-                                                onClick={() => toggleBlockStatus(user.id, user.is_active)}
-                                                className="py-1 text-xs font-mono px-3 text-gray-100 focus:outline-none bg-yellow-700 hover:bg-red-600 hover:text-black rounded-md"
-                                            >
-                                                BLOCK
-                                            </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => toggleBlockStatus(user.id, user.is_active)}
-                                                    className="py-1 text-xs font-mono px-3 text-black focus:outline-none bg-red-600 hover:text-black rounded-md"
-                                                >
-                                                    UNBLOCK
-                                                </button>
-                                            )}
-                                                
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* NEW CATEGORY SECTION */}
-                <div className="w-full p-2">
-                    <div className="bg-gray-900 rounded-2xl bg-opacity-45 backdrop-blur-sm shadow">
-                        <div className="w-full text-center">
-                            <h1 className="text-xl font-bold text-gray-300 md:text-4xl">ADMINS</h1>
-                        </div>
-                        <div className="flex flex-wrap">
-                            {admins.map((item) => (
-                                <div key={item.id} className="flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 p-2">
-                                    <div className="bg-gray-800 rounded-lg p-4">
-                                        <div className="flex flex-col items-center">
-                                            <img className="w-24 h-20 mb-2 rounded-full shadow-md" src="https://img.freepik.com/premium-vector/user-profile-icon-flat-style-member-avatar-vector-illustration-isolated-background-human-permission-sign-business-concept_157943-15752.jpg" />
-                                            <h5 className="mb-1 text-md font-medium text-gray-900 dark:text-white">{item.username}</h5>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">{item.email}</span>
-                                            <div className="flex mt-2">
-                                                {item.allow_admin && (
-                                                    <>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={item.is_admin}
-                                                            onChange={() => toggleAdminStatus(item.id, item.is_admin)}
-                                                            className="mr-2"
-                                                        />
-                                                        <label className='text-white font-semibold'>Verify?</label>
-                                                    </>
-                                                )}
-
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+        {/* Registered Doctors Section */}
+        <section className="w-full">
+          <div className="bg-white rounded-lg shadow-lg p-5">
+            <h2 className="text-3xl font-semibold mb-5 text-center">Registered Doctors</h2>
+            <div className="flex justify-between mb-4">
+              <button className="bg-[#d5f2ec] text-backgroundColor px-4 py-2 rounded-lg" onClick={() => doctorSlider.current.slickPrev()}>
+                <FaArrowLeft size={25} />
+              </button>
+              <button className="bg-[#d5f2ec] text-backgroundColor px-4 py-2 rounded-lg" onClick={() => doctorSlider.current.slickNext()}>
+                <FaArrowRight size={25} />
+              </button>
             </div>
-
-            {selectedImage && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="relative">
-                        <img className="w-1/3 max-h-1/3 mx-auto" src={selectedImage} alt="Full-size" />
-                        <button
-                            className="absolute top-1 right-1 text-red-500 bg-gray-50 hover:bg-red-700 rounded-full text-2xl font-bold"
-                            onClick={closeModal}
-                        >
-                            &times;
-                        </button>
-                    </div>
+            <Slider ref={doctorSlider} {...settings}>
+              {doctors.map((doctor, index) => (
+                <div className="h-[400px] text-black rounded-xl shadow-lg mb-2 p-5" key={index}>
+                  <img src={doctor.profilePic} alt="Doctor Profile" className="h-24 w-24 rounded-full mx-auto mb-4" />
+                  <h3 className="font-semibold text-xl mb-2">{doctor.username}</h3>
+                  <p>{doctor.email}</p>
+                  <p>{doctor.department}</p>
+                  <div className="mt-4 flex flex-col gap-3">
+                    <label>
+                      <input type="checkbox" checked={doctor.isBlocked} onChange={() => toggleDoctorBlock(index)} /> Block/Unblock
+                    </label>
+                    <label>
+                      <input type="checkbox" checked={doctor.isAdmin} onChange={() => toggleDoctorAdmin(index)} /> Allow Admin
+                    </label>
+                    <a href={doctor.doctorProof} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">View Proof</a>
+                    <button className="bg-red-500 px-3 py-1 text-white rounded-lg">Delete</button>
+                  </div>
                 </div>
-            )}
-        </>
-    );
-}
+              ))}
+            </Slider>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
 
-export default Admin
+export default Admin;

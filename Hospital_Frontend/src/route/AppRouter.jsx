@@ -6,6 +6,7 @@ import UserHome from '../components/UserHome'
 import User from '../components/User'
 import VerifyEmail from '../components/VerifyEmail'
 import Admin from '../components/Admin'
+import Profile from '../components/Profile'
 
 
 
@@ -18,6 +19,7 @@ const AppRouter = () => {
                 <Route path='/user/login' element={<Login/>}/>
                 <Route path='/user/registration' element={<Registration/>}/>
                 <Route path='/user/userhome' element={<UserHome/>}/>
+                <Route path='/user/profile' element={<Profile/>}/>
                 <Route path='/user/verifyemail' element={<VerifyEmail/>}/>
 
                 <Route path='/' element={<User/>} />
