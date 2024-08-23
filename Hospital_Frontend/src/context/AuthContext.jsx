@@ -13,9 +13,12 @@ export const AuthProvider = ({ children }) => {
     const [authTokens, setAuthTokens] = useState(() => localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null);
     const [user, setUser] = useState(() => localStorage.getItem('authTokens') ? jwtDecode(localStorage.getItem('authTokens')) : null);
     const [loading, setLoading] = useState(true);
+    const [username,setUsername] = useState(null)
+    const [doc,setDoc] = useState({doctor:{username:'', email:'', first_name:'', last_name:'' },department:'', profile_picture:'', doctor_proof:''})
 
     const navigate = useNavigate();
 
+    //  Login user
     const LoginUser = async (e) => {
       
       e.preventDefault();
@@ -27,6 +30,7 @@ export const AuthProvider = ({ children }) => {
       }, {
           headers: {
               'Content-Type': 'application/json',
+              
           },
       });
       
@@ -38,24 +42,26 @@ export const AuthProvider = ({ children }) => {
           setUser(decodedToken);
           setAuthTokens(data);
           localStorage.setItem("authTokens", JSON.stringify(data));
-          navigate("/user/userhome");
+          navigate(decodedToken.is_admin?'/admin':'/user/userhome')
+          // navigate("/user/userhome");
         } else {
-          toast.error("Something went wrong....!");
+          alert("Something went wrong....!");
         }
       } catch (error) {
         if (error.response && error.response.data) {
-          toast.error(error.response.data.detail);
+          alert(error.response.data.detail);
         } else {
-          toast.error('An error occurred.');
+          alert('An error occurred.');
         }
       }
     };
 
+    //Logout user
     const LogOut = () => {
       setAuthTokens(null);
       setUser(null);
       localStorage.removeItem("authTokens");
-      toast.info("Your account is Logout...");
+      alert("Your account is Logout...");
       navigate("/user/login");
     };
 
@@ -99,11 +105,32 @@ export const AuthProvider = ({ children }) => {
       return () => clearInterval(interval); // Clean up interval on component unmount
     }, [authTokens]);
 
+
+    //Doctor Detail get
+    const GetDoctor = async (e) =>{
+      try{
+        let response = await axios.get('http://127.0.0.1:8000/api/doctorgetedit/',{
+          headers: {
+            'Authorization': `Bearer ${authTokens.access}`
+          }
+        });
+
+        if(response.status == 200){
+          setDoc(response.data)
+        }
+      }catch(error){
+        alert(error)
+      }
+    }
+
     let contextData = {
       LoginUser: LoginUser,
       LogOut: LogOut,
       user: user,
       authTokens: authTokens,
+      doc: doc,
+      setDoc:setDoc,
+      GetDoctor:GetDoctor
     };
 
     return (

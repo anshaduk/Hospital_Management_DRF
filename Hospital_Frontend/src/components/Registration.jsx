@@ -50,7 +50,7 @@ function Registration() {
     console.log(response);
 
     alert("Registration Succesfull")
-    navigate("/")
+    navigate("/user/verifyemail")
     
   } catch (error) {
     console.log(error);

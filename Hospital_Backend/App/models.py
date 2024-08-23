@@ -1,12 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
 from django.db.models.query import QuerySet
+from django.utils import timezone
+import random
+import string
+
 
 # Create your models here.
 
 
 class UserManager(BaseUserManager):
-    def create_user(self,username,email,is_doctor=False,password=None,**extra_fields):
+    def create_user(self,username,email,password=None,**extra_fields):
         """
         Creates and saves a User with the given email, username, is_doctor and password.
         """
@@ -16,7 +20,6 @@ class UserManager(BaseUserManager):
         user = self.model(
             email = self.normalize_email(email),
             username = username,
-            is_doctor = is_doctor,
             **extra_fields
         )
         user.set_password(password)
@@ -44,11 +47,20 @@ class User(AbstractBaseUser):
         last_name = models.CharField(max_length=50)
         is_doctor = models.BooleanField(default=False)
         is_admin = models.BooleanField(default=False)
+        is_staff = models.BooleanField(default=False)
         is_active = models.BooleanField(default=True)
+        allow_admin = models.BooleanField(default=False)
         is_verified = models.BooleanField(default=False)
-
+        code_expires_at = models.DateTimeField(blank=True, null=True)
+        verification_code = models.CharField(max_length=10,blank=True,null=True)
+        
         def __str__(self):
              return self.username
+        
+        def generate_verification_code(self):
+             self.verification_code = ''.join(random.choices(string.digits, k=6))
+             self.code_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+             self.save()
 
         objects = UserManager()
 
@@ -69,7 +81,7 @@ class User(AbstractBaseUser):
              return self.is_admin
         
 class Doctor(models.Model):
-     user = models.OneToOneField(User,on_delete=models.CASCADE) 
+     doctor = models.ForeignKey(User,on_delete=models.CASCADE) 
     #  hospital= models.CharField(max_length=255,null=True,blank=True)
      department = models.CharField(max_length=255,null=True,blank=True)
      is_verified = models.BooleanField(default=False)
@@ -77,7 +89,7 @@ class Doctor(models.Model):
      doctor_proof = models.ImageField(upload_to='media',default='', null=False, blank=True)
 
      def __str__(self):
-          return self.user.username
+          return self.doctor.username
 
         
 
