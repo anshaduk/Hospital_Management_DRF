@@ -2,9 +2,10 @@ from rest_framework import serializers
 from . models import User,Doctor
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
+import re
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type':'password'})
+    password2 = serializers.CharField(style={'input_type':'password'},required=False)
     doctor_proof = serializers.ImageField(required=False)
     profile_picture = serializers.ImageField(required=False)
     department = serializers.CharField(required=False)
@@ -14,15 +15,25 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['username','email','password','password2',
                   'is_doctor','is_admin','profile_picture',
                   'doctor_proof','department','is_active',
-                  'allow_admin'
-                  ]
+                  'allow_admin','first_name','last_name'
+                  ] 
 
-
+    #VALIDATION REGISTRATION FIELDS
     def validate(self,data):
-        password = data.get('password')
-        password2 = data.get('password2')
-        if password != password2:
-            raise serializers.ValidationError('Password Does Not Match')
+        if User.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError({'username':'Duplicate user name,enter another one'})
+        if User.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError({'email':'Email already exists ,enter another one'})
+        if data['password']!=data['password2']:
+            raise serializers.ValidationError({'non_field_errors':'Password does not match'})
+        if len(data['password'])<8:
+            raise serializers.ValidationError({'password':'Password must be atleast 8 character long'})
+        if not re.search(r'[A-Z]', data['password']):
+            raise serializers.ValidationError({'password':'Password must be contain one capital letter'})
+        if not re.search(r'\d', data['password']):
+            raise serializers.ValidationError({'password': 'Password must contain  one digit'})
+        if not re.search(r'[@$!%*?&#]', data['password']):
+            raise serializers.ValidationError({'password': 'Password must contain  one spcial character'})
         return data
     
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -40,7 +51,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'username', 'email', 'is_doctor']
+        fields = ['id', 'first_name', 'last_name', 'username', 'email', 'is_doctor','is_admin']
 
     def update(self, instance, validated_data):
         new_username = validated_data.get('username', instance.username)
@@ -87,7 +98,10 @@ class DoctorGetEditSerializer(serializers.ModelSerializer):
             user_instance.username = doctor_data.get('username', user_instance.username)
             user_instance.email = doctor_data.get('email',user_instance.email)
             user_instance.first_name  = doctor_data.get('first_name', user_instance.first_name)
+            print(user_instance.last_name,'before update')
             user_instance.last_name = doctor_data.get('last_name', user_instance.last_name)
+            print(user_instance.last_name,'after update')
+
             user_instance.save()
         instance.department = validated_data.get('department', instance.department)
         instance.save()
@@ -98,7 +112,7 @@ class DoctorSerializer(serializers.ModelSerializer):
     doctor = UserSerializer()
     class Meta:
         model = Doctor
-        fields  =['id', 'doctor' 'department', 'is_verified', 'profile_picture', 'doctor_proof']
+        fields  =['id', 'doctor', 'department', 'is_verified', 'profile_picture', 'doctor_proof']
 
     def update(self,instance,validated_data):
         instance.is_verified = validated_data.get('is_verified', instance.is_verified)

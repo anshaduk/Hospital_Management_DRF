@@ -54,7 +54,12 @@ function Registration() {
     
   } catch (error) {
     console.log(error);
-    alert(error)
+    const errorMessage = error.response?.data?.message?.email?.[0]
+                || error.response?.data?.message?.username?.[0]
+                || error.response?.data?.message?.non_field_errors?.[0]
+                ||error.response?.data?.message?.password?.[0]
+                || "Registration failed";
+    alert(errorMessage)
   }
   };
 
@@ -145,7 +150,7 @@ function Registration() {
                 </label>
               </div>
 
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <input
                   id="is_admin"
                   type="checkbox"
@@ -154,7 +159,7 @@ function Registration() {
                 <label htmlFor="is_admin" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                   Are you an admin?
                 </label>
-              </div>
+              </div> */}
             </div>
 
             {/* Doctor Fields */}

@@ -117,6 +117,8 @@ export const AuthProvider = ({ children }) => {
 
         if(response.status == 200){
           setDoc(response.data)
+          console.log(response.data.doctor,'lastname');
+          
         }
       }catch(error){
         alert(error)

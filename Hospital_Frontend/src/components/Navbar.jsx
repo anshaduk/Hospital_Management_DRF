@@ -7,10 +7,10 @@ import { Link } from 'react-router-dom';
 
 
 const navigation = [
-  { name: 'Home', href: 'home', current: true },
-  { name: 'About Us', href: 'about', current: false },
-  { name: 'Services', href: 'services', current: false },
-  { name: 'Doctors', href: 'doctors', current: false },
+  { name: 'Home', href: '/', current: true },
+  // { name: 'About Us', href: 'about', current: false },
+  // { name: 'Services', href: 'services', current: false },
+  // { name: 'Doctors', href: 'doctors', current: false },
 ];
 
 function classNames(...classes) {
@@ -95,13 +95,13 @@ const Navbar = () => {
                   </button>
                   </Link>
                   }
-                  <button
+                  {/* <button
                     type="button"
                     className="rounded-md bg-red-900 px-4 py-1 text-white hover:bg-hoverColor transition duration-300 ease-in-out sm:text-sm"
                     onClick={openForm}
                   >
                     Book Now
-                  </button>
+                  </button> */}
                   {showForm && <BookNow closeForm={closeForm} />}
                   
                 </div>

@@ -36,6 +36,7 @@ class RegistrationUser(APIView):
 
     def post(self,request):
         data = request.data
+        print(data,'request dataaa')
         serializer = UserRegistrationSerializer(data=data)
         if serializer.is_valid():
             user = User.objects.create(
@@ -112,7 +113,8 @@ class LogoutView(APIView):
 class UserView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,requset):
-        user = requset.data
+        user = requset.user
+        print(user)
         try:
             user = User.objects.get(username=user)
         except User.DoesNotExist:
@@ -207,6 +209,7 @@ class AdminView(APIView):
         try:
             user = User.objects.get(pk=pk)
             action = request.data.get('action')
+            print(action,'action')
             if action == 'block':
                 user.is_active = False
             elif action == 'unblock':

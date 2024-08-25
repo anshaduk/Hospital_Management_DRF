@@ -36,6 +36,7 @@ class UserManager(BaseUserManager):
             password = password,
         )
         user.is_admin = True
+        user.set_password(password)
         user.save(using=self._db)
         return user
     
@@ -43,8 +44,8 @@ class User(AbstractBaseUser):
         username = models.CharField(max_length=100)
         email = models.EmailField(max_length=255,verbose_name='email address',unique=True)
         password = models.CharField(max_length=255)
-        first_name = models.CharField(max_length=50)
-        last_name = models.CharField(max_length=50)
+        first_name = models.CharField(max_length=50,null=True,blank=True)
+        last_name = models.CharField(max_length=50,null=True,blank=True)
         is_doctor = models.BooleanField(default=False)
         is_admin = models.BooleanField(default=False)
         is_staff = models.BooleanField(default=False)
@@ -68,7 +69,7 @@ class User(AbstractBaseUser):
         REQUIRED_FIELDS = ['username']
 
         def has_perm(self,perm,obj=None):
-             "This method is used to check whether the user has a specific permission"
+             "This method is used to check whether th  e user has a specific permission"
              return self.is_admin
         
         def has_module_perms(self,app_label):
