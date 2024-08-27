@@ -14,6 +14,13 @@ from threading import Thread
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
+
+
+
+
+
 # Create your views here.
 
 
@@ -29,11 +36,35 @@ def send_email(subject, message, sender, recipient_list):
 
 ############# USER REGISTRATION #################
 class RegistrationUser(APIView):
+    '''
+    List all users, or create a new user.
+    user may be Patient or Doctor.
+    '''
+    
+    
+
+    @extend_schema(
+        operation_id='list_users',
+        description="Retrieve a list of all users",
+        responses={
+            200: UserRegistrationSerializer(many=True)
+        }
+    )
     def get(self,request):
         users = User.objects.all()
         serializer = UserRegistrationSerializer(users,many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        operation_id='create_user',
+        description="Create a new Patient or Doctor.",
+        request=UserRegistrationSerializer,
+        responses={
+            201: OpenApiTypes.OBJECT,
+            400: OpenApiTypes.OBJECT
+        }
+    )
+   
     def post(self,request):
         data = request.data
         print(data,'request dataaa')
@@ -74,31 +105,128 @@ class RegistrationUser(APIView):
 
 ########### EMAIL VERIFICATION ##########
 class VerifyEmail(APIView):
+    '''
+    Verify email using a verification code.
+    '''
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'code': {
+                        'type': 'string',
+                        'description': 'The verification code sent to the user\'s email.'
+                    },
+                    'email': {
+                        'type': 'string',
+                        'description': 'The email address of the user who is verifying their email.'
+                    }
+                },
+                'required': ['code', 'email']
+            }
+        },
+        responses={
+            200: OpenApiResponse(
+                description='Email verification successful.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'message': {
+                                'type': 'string',
+                                'example': 'Email verification successful.'
+                            }
+                        }
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Invalid email address or verification code.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'message': {
+                                'type': 'string',
+                                'example': 'Invalid email address.'  # This example message can be customized.
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def post(self, request):
         code = request.data.get('code')
         email = request.data.get('email')
-        # print(code,'code.....')
-        # print(email,'email....')
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'message':'invalid email address.'},status=status.HTTP_200_OK)
+            return Response({'message': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+
         if user.verification_code == code and timezone.now() < user.code_expires_at:
             user.is_verified = True
             user.is_active = True
             user.verification_code = None
             user.code_expires_at = None
             user.save()
-            return Response({'message' : 'email verification successfully.'},status=status.HTTP_200_OK)
+            return Response({'message': 'Email verification successful.'}, status=status.HTTP_200_OK)
         else:
-            return Response({'message' : 'invalid or verification code expired.'},status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Invalid or expired verification code.'}, status=status.HTTP_400_BAD_REQUEST)
             
 
 ########LOGOUT###########
 class LogoutView(APIView):
+    '''
+    Logout the user account.
+    '''
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'refresh_token': {
+                        'type': 'string',
+                        'description': 'The refresh token to be blacklisted.'
+                    }
+                },
+                'required': ['refresh_token']
+            }
+        },
+        responses={
+            205: OpenApiResponse(
+                description='Logout successful. Refresh token has been blacklisted.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'message': {
+                                'type': 'string',
+                                'example': 'Logout successful.'
+                            }
+                        }
+                    }
+                }
+            ),
+            400: OpenApiResponse(
+                description='Bad request. The request is missing the refresh token or has an invalid token.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'message': {
+                                'type': 'string',
+                                'example': 'Invalid request or token.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def post(self,request):
         try:
             refresh_token = request.data['refresh_token']
@@ -111,7 +239,33 @@ class LogoutView(APIView):
 
 ##############USER GET AND EDIT##############
 class UserView(APIView):
+    '''
+    Get user details or Edit user details.
+    '''
     permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description='User details retrieved successfully.',
+                response=UserSerializer
+            ),
+            404: OpenApiResponse(
+                description='User not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Not found user.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def get(self,requset):
         user = requset.user
         print(user)
@@ -122,6 +276,43 @@ class UserView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    @extend_schema(
+        request=UserSerializer,
+        responses={
+            200: OpenApiResponse(
+                description='User details updated successfully.',
+                response=UserSerializer
+            ),
+            400: OpenApiResponse(
+                description='Invalid request data.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Invalid data.'
+                            }
+                        }
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='User not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'User not found.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def patch(self,request):
         user = request.user
         try:
@@ -143,7 +334,33 @@ class UserView(APIView):
 
 ##############DOCTOR GET AND EDIT############
 class DoctorGetEditView(APIView):
+    '''
+    Get the doctor deatails and edit it in Admin side.
+    '''
     permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description='Doctor details retrieved successfully.',
+                response=DoctorGetEditSerializer
+            ),
+            404: OpenApiResponse(
+                description='Doctor not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Doctor not found.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def get(self,requset):
         doctor = requset.user
         try:
@@ -151,8 +368,44 @@ class DoctorGetEditView(APIView):
             serilizer = DoctorGetEditSerializer(doctors)
             return Response(serilizer.data,status=status.HTTP_200_OK)
         except Doctor.DoesNotExist:
-            return Response(serilizer.errors, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Doctor not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description='Doctor details updated successfully.',
+                response=DoctorGetEditSerializer
+            ),
+            400: OpenApiResponse(
+                description='Invalid request data.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Invalid data.'
+                            }
+                        }
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Doctor not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Doctor not found.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def patch(self,request):
         doctor = request.user
         try:
@@ -172,20 +425,93 @@ class DoctorGetEditView(APIView):
 
 #############DOCTOR GET AND EDIT##############
 class DoctorView(APIView):
+    '''
+    Retrieve list of doctors and partially update the doctor's details.
+    '''
+
     permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description='List of doctors retrieved successfully.',
+                response=DoctorSerializer(many=True)
+            ),
+            204: OpenApiResponse(
+                description='No doctors found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'No content.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def get(self,request):
         doctor = Doctor.objects.all()
         if doctor.exists():
             serializer = DoctorSerializer(doctor, many=True)
             return Response({'doctors':serializer.data},status=status.HTTP_200_OK)
         else:
-            return Response(status=status.HTTP_204_NO_CONTENT) 
+            return Response({'detail': 'No content.'},status=status.HTTP_204_NO_CONTENT) 
     
+    @extend_schema(
+        request=DoctorSerializer,
+        responses={
+            200: OpenApiResponse(
+                description='Doctor details updated successfully.',
+                response=DoctorSerializer
+            ),
+            400: OpenApiResponse(
+                description='Invalid request data.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Invalid data.'
+                            }
+                        }
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='Doctor not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'Doctor not found.'
+                            }
+                        }
+                    }
+                }
+            )
+        },
+        parameters=[
+            OpenApiParameter(
+                name='pk',
+                type=int,
+                description='Primary key of the doctor',
+                required=True,
+                location=OpenApiParameter.PATH
+            )
+        ]
+    )
     def patch(self,request,pk):
         try:
             doctor = Doctor.objects.get(pk=pk)
         except Doctor.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Doctor not found.'},status=status.HTTP_404_NOT_FOUND)
         
         serializer = DoctorSerializer(doctor,data=request.data,partial=True)
         if serializer.is_valid():
@@ -196,15 +522,99 @@ class DoctorView(APIView):
 
 ############## ADMIN VIEW ###############  
 class AdminView(APIView):
+    '''
+    Retrieve a list of all users and Partially update a user's status (block/unblock) and admin rights.
+    '''
     permission_classes = [IsAdminUser]
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description='List of all users retrieved successfully.',
+                response=UserSerializer(many=True)
+            ),
+            204: OpenApiResponse(
+                description='No users found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'detail': {
+                                'type': 'string',
+                                'example': 'No content.'
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    )
     def get(self,request):
         users = User.objects.all()
         if users.exists():
             serializers = UserSerializer(users,many=True)
             return Response(serializers.data,status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'detail': 'No content.'},status=status.HTTP_204_NO_CONTENT)
     
+
+    @extend_schema(
+        request=UserSerializer,  
+        responses={
+            200: OpenApiResponse(
+                description='User details updated successfully.',
+                response=UserSerializer
+            ),
+            400: OpenApiResponse(
+                description='Invalid request data.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'error': {
+                                'type': 'string',
+                                'example': 'Invalid data.'
+                            }
+                        }
+                    }
+                }
+            ),
+            404: OpenApiResponse(
+                description='User not found.',
+                response={
+                    'application/json': {
+                        'type': 'object',
+                        'properties': {
+                            'error': {
+                                'type': 'string',
+                                'example': 'User not found.'
+                            }
+                        }
+                    }
+                }
+            )
+        },
+        parameters=[
+            OpenApiParameter(
+                name='pk',
+                description="Primary key of the user",
+                required=True,
+                type=int,
+                location=OpenApiParameter.PATH
+            ),
+            OpenApiParameter(
+                name='action',
+                description="Action to perform: 'block' or 'unblock'",
+                required=True,
+                type=str
+            ),
+            OpenApiParameter(
+                name='is_admin',
+                description="Set this user's admin status.",
+                required=False,
+                type=bool
+            )
+        ]
+    )
     def patch(self,request,pk):
         try:
             user = User.objects.get(pk=pk)

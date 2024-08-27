@@ -5,11 +5,6 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const Profile = () => {
-  // const [firstName, setFirstName] = useState('');
-  // const [lastName, setLastName] = useState('');
-  // const [username, setUsername] = useState('');
-  // const [email, setEmail] = useState('');
-  // const [department, setDepartment] = useState('');
 
   const {user, authTokens, GetDoctor, doc, setDoc,LogOut} = useContext(AuthContext)
   let [userDetail, setUserDetail] = useState([])
@@ -24,6 +19,14 @@ const Profile = () => {
         UserViews();
     }
   }, [user,navigate]);
+
+  useEffect(() => {
+    if (user?.is_doctor && !doc.is_verified) {
+        alert('You are not verified; please wait for an admin to verify you.');
+        navigate('/user/userhome')
+    }
+    
+}, [user, doc]);
 
   const editDoctor = async (e) =>{
     try{
@@ -124,16 +127,11 @@ const Profile = () => {
             Profile
           </h1>
         </div>
+        
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 space-y-6">
           <form className="space-y-6" onSubmit={user.is_doctor?editDoctor:editUser}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-2">
-            {user?.is_doctor ? (
-                        doc.is_verified ? null : (
-                            <h2 className="text-lg font-bold text-red-500 mb-4 text-center">
-                                You are not verified , please wait for admin to verify you  
-                            </h2>
-                        )
-              ) : null}
+            
               {/* First Name Field */}
               <div>
                 <label htmlFor="first-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

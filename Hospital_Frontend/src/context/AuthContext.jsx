@@ -86,9 +86,9 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         if (error.response && error.response.data) {
-          toast.error(error.response.data.detail);
+          alert(error.response.data.detail);
         } else {
-          toast.error('An error occurred.');
+          alert('An error occurred.');
         }
       }
     };

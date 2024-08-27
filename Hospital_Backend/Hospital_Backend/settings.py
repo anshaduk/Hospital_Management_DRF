@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    # 'drf_yasg',
+    'drf_spectacular',
 
     #!App
     'App',
@@ -147,11 +149,25 @@ AUTH_USER_MODEL = 'App.User'
 #! List of JWT Authentication Classes
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-    
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
-    
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Hospital Management System API',
+    'DESCRIPTION': 'API documentation for the Hospital Management System, including endpoints for managing users, doctors and admin.',
+    'VERSION': '1.0.0',
+    'SCHEMA_PATH_PREFIX': '/api/v1/',  
+    'SERVE_INCLUDE_SCHEMA': True, 
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+    },
+    'COMPONENT_SPLIT_REQUEST': True,
+    # 'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'], 
+}
+
 
 #!Simple JWT Configuration
 SIMPLE_JWT = {

@@ -213,7 +213,7 @@ const Admin = () => {
             </div>
           
             <Slider ref={doctorSlider} {...settings}>
-              {doctors.map((doc, index) => (
+              {doctors?.map((doc, index) => (
                 <div className="flex-shrink-0  w-full p-4" key={index}>
                   <div className="h-[300px] text-black rounded-xl shadow-lg p-5 bg-white flex flex-col items-center">
                     <img src={`${baseUrl + doc.profile_picture}`} alt="Doctor Profile" className="h-24 w-24 rounded-full mb-2" />

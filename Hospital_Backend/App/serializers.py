@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 import re
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type':'password'},required=False)
+    password2 = serializers.CharField(style={'input_type':'password'},required=False, write_only=True)
     doctor_proof = serializers.ImageField(required=False)
     profile_picture = serializers.ImageField(required=False)
     department = serializers.CharField(required=False)
@@ -19,22 +19,44 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                   ] 
 
     #VALIDATION REGISTRATION FIELDS
-    def validate(self,data):
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError({'username':'Duplicate user name,enter another one'})
-        if User.objects.filter(email=data['email']).exists():
-            raise serializers.ValidationError({'email':'Email already exists ,enter another one'})
-        if data['password']!=data['password2']:
-            raise serializers.ValidationError({'non_field_errors':'Password does not match'})
-        if len(data['password'])<8:
-            raise serializers.ValidationError({'password':'Password must be atleast 8 character long'})
-        if not re.search(r'[A-Z]', data['password']):
-            raise serializers.ValidationError({'password':'Password must be contain one capital letter'})
-        if not re.search(r'\d', data['password']):
-            raise serializers.ValidationError({'password': 'Password must contain  one digit'})
-        if not re.search(r'[@$!%*?&#]', data['password']):
-            raise serializers.ValidationError({'password': 'Password must contain  one spcial character'})
-        return data
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken. Please choose another one.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already registered. Please use another email.")
+        return value
+
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not re.search(r'\d', value):
+            raise serializers.ValidationError("Password must contain at least one digit.")
+        if not re.search(r'[@$!%*?&#]', value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        return value
+
+    # def validate(self,data):
+    #     if User.objects.filter(username=data['username']).exists():
+    #         raise serializers.ValidationError({'username':'Duplicate user name,enter another one'})
+    #     if User.objects.filter(email=data['email']).exists():
+    #         raise serializers.ValidationError({'email':'Email already exists ,enter another one'})
+    #     if data['password']!=data['password2']:
+    #         raise serializers.ValidationError({'non_field_errors':'Password does not match'})
+    #     if len(data['password'])<8:
+    #         raise serializers.ValidationError({'password':'Password must be atleast 8 character long'})
+    #     if not re.search(r'[A-Z]', data['password']):
+    #         raise serializers.ValidationError({'password':'Password must be contain one capital letter'})
+    #     if not re.search(r'\d', data['password']):
+    #         raise serializers.ValidationError({'password': 'Password must contain  one digit'})
+    #     if not re.search(r'[@$!%*?&#]', data['password']):
+    #         raise serializers.ValidationError({'password': 'Password must contain  one spcial character'})
+    #     return data
     
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls,user):
@@ -62,7 +84,7 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.filter(email=new_email).exclude(id=instance.id).exists():
             raise serializers.ValidationError({'email':'Email already exists,Please enter another one...'})
         
-        instance.username = validated_data.get('user_name', instance.username)
+        instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
