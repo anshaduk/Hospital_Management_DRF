@@ -83,7 +83,6 @@ class User(AbstractBaseUser):
         
 class Doctor(models.Model):
      doctor = models.ForeignKey(User,on_delete=models.CASCADE) 
-    #  hospital= models.CharField(max_length=255,null=True,blank=True)
      department = models.CharField(max_length=255,null=True,blank=True)
      is_verified = models.BooleanField(default=False)
      profile_picture = models.ImageField(upload_to='media',default='', null=False, blank=True)

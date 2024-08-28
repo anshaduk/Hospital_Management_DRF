@@ -1,4 +1,4 @@
-from models import Doctor,User
+from . models import Doctor,User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -9,6 +9,7 @@ def send_email(subject, message, sender, recipient_list):
     email = EmailMessage(subject, message, sender, recipient_list)
     email.send()
 
+@receiver(post_save, sender=Doctor)
 def send_notification(sender,instance,created,**kwargs):
     if created:
         doctor = instance

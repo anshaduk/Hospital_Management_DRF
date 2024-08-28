@@ -232,9 +232,9 @@ class LogoutView(APIView):
             refresh_token = request.data['refresh_token']
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
+            return Response({'message':'Logout successfully'},status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message':'Refresh and access token not valid'},status=status.HTTP_400_BAD_REQUEST)
         
 
 ##############USER GET AND EDIT##############
@@ -508,6 +508,7 @@ class DoctorView(APIView):
         ]
     )
     def patch(self,request,pk):
+        print(pk)
         try:
             doctor = Doctor.objects.get(pk=pk)
         except Doctor.DoesNotExist:
@@ -615,22 +616,28 @@ class AdminView(APIView):
             )
         ]
     )
-    def patch(self,request,pk):
+    def patch(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
             action = request.data.get('action')
-            print(action,'action')
+
+        
             if action == 'block':
                 user.is_active = False
             elif action == 'unblock':
                 user.is_active = True
             
-            is_admin  = request.data.get('is_admin',user.is_admin)
-            user.is_admin = is_admin
-            if is_admin:
+            
+            is_admin = request.data.get('is_admin', str(user.is_admin)).lower()
+            user.is_admin = is_admin == 'true'
+            
+            
+            if user.is_admin:
                 user.allow_admin = False
+
             user.save()
             serializer = UserSerializer(user)
-            return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error":"user not found."},status=status.HTTP_404_NOT_FOUND)    
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    
